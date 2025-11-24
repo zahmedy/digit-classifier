@@ -1,4 +1,5 @@
-# utils/run.py (top of file)
+import os
+
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.datasets import load_digits
@@ -35,10 +36,21 @@ def get_loaders(batch_size=64):
     )
 
 
-
 from models.cnn import CNN
 from utils.train import train
-import os
+
+
+def evaluate(model, loader, device="cpu"):
+    model.eval()
+    correct = total = 0
+    with torch.no_grad():
+        for images, labels in loader:
+            images, labels = images.to(device), labels.to(device)
+            preds = model(images).argmax(dim=1)
+            correct += (preds == labels).sum().item()
+            total += labels.size(0)
+    return correct / total if total else 0.0
+
 
 def main():
     train_loader, test_loader = get_loaders()
@@ -52,6 +64,9 @@ def main():
     for epoch in range(10):
         loss = train(model, train_loader, optimizer, device)
         print(f"Epoch {epoch+1}, Loss = {loss:.4f}")
+
+    test_acc = evaluate(model, test_loader, device)
+    print(f"Test accuracy: {test_acc:.4f}")
 
     # Save model for inference
     os.makedirs("models", exist_ok=True)
