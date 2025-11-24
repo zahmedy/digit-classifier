@@ -19,3 +19,21 @@ def get_loaders(batch_size=64):
 
     return train_loader, test_loader
 
+from models.cnn import CNN
+from utils.train import train
+
+def main():
+    train_loader, test_loader = get_loaders()
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    model = CNN().to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+
+    print("Training...")
+    for epoch in range(3):
+        loss = train(model, train_loader, optimizer, device)
+        print(f"Epoch {epoch+1}, Loss = {loss:.4f}")
+
+if __name__ == "__main__":
+    main()
