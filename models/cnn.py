@@ -3,33 +3,23 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class CNN(nn.Module):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(self):
+        super().__init__()
 
-        # ---- Convolution layers ----
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=8, kernel_size=3)    # (1,28,28) -> (8,26,26)
-        self.conv2 = nn.Conv2d(in_channels=8, out_channels=16, kernel_size=3)   # (8,26,26) -> (16,24,24)
+        self.conv1 = nn.Conv2d(1, 8, 3)      # (1,32,32) -> (8,30,30)
+        self.conv2 = nn.Conv2d(8, 16, 3)     # (8,15,15) after pool -> (16,13,13)
 
-        # ---- Fully connected layers ---- 
-        self.fc1 = nn.Linear(16 * 5 * 5, 64)
+        self.fc1 = nn.Linear(16 * 6 * 6, 64)
         self.fc2 = nn.Linear(64, 10)
 
     def forward(self, x):
-        # Block 1: Conv -> ReLU --> MaxPool
-        x = self.conv1(x)
-        x = F.relu(x)
-        x = F.max_pool2d(x, 2)
+        x = F.relu(self.conv1(x))
+        x = F.max_pool2d(x, 2)   # -> (8,15,15)
 
-        # Block 2
-        x = self.conv2(x)
-        x = F.relu(x)
-        x = F.max_pool2d(x, 2)
+        x = F.relu(self.conv2(x))
+        x = F.max_pool2d(x, 2)   # -> (16,13,13)
 
-        # Flatten
         x = x.view(x.size(0), -1)
-
-        # Fully connected layers
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
-
         return x
